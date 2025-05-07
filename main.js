@@ -1,9 +1,9 @@
 const { app, BrowserWindow } = require('electron');
 const { spawn } = require('child_process');
 const http = require('http');
-const path = require('path');
 
 let mainWindow;
+let serverProcess;
 
 const waitForServer = (url) => {
   return new Promise((resolve, reject) => {
@@ -14,11 +14,7 @@ const waitForServer = (url) => {
     const checkServer = () => {
       http
         .get(url, (res) => {
-          if (
-            res.statusCode === 200 ||
-            res.statusCode === 302 ||
-            res.statusCode === 304
-          ) {
+          if ([200, 302, 304].includes(res.statusCode)) {
             console.log('Server is running');
             resolve();
           } else {
@@ -44,20 +40,23 @@ const waitForServer = (url) => {
 };
 
 const startExpressServer = () => {
-  const server = spawn('npm', ['start'], {
+  serverProcess = spawn('npm', ['start'], {
     shell: true,
     stdio: 'inherit',
   });
 
-  server.on('error', (error) => {
+  serverProcess.on('error', (error) => {
     console.error('Failed to start Express server:', error);
   });
 
-  app.on('quit', () => {
-    server.kill('SIGINT');
+  app.on('before-quit', () => {
+    if (serverProcess) {
+      console.log('Stopping Express server...');
+      serverProcess.kill('SIGINT');
+    }
   });
 
-  return server;
+  return serverProcess;
 };
 
 const createWindow = async () => {
@@ -70,6 +69,8 @@ const createWindow = async () => {
       webSecurity: true,
     },
   });
+
+  global.mainWindow = mainWindow;
 
   if (process.env.NODE_ENV === 'development') {
     mainWindow.webContents.openDevTools();
@@ -89,7 +90,6 @@ const createWindow = async () => {
 
 app.whenReady().then(() => {
   startExpressServer();
-
   setTimeout(() => createWindow(), 1000);
 
   app.on('activate', () => {

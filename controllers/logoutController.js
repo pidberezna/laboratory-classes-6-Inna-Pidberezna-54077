@@ -1,6 +1,5 @@
 const { LOGOUT_LINKS } = require('../constants/navigation');
 const logger = require('../utils/logger');
-
 const cartController = require('./cartController');
 
 exports.getLogoutView = (request, response) => {
@@ -18,13 +17,12 @@ exports.getLogoutView = (request, response) => {
 exports.killApplication = (request, response) => {
   logger.getProcessLog();
 
-  if (process.env.ELECTRON_RUN_AS_NODE) {
-    response.send('Application will be closed.');
+  response.send('Application and server will be closed.');
 
-    setTimeout(() => {
-      process.exit();
-    }, 300);
-  } else {
-    process.exit();
-  }
+  setTimeout(() => {
+    if (global.mainWindow) {
+      global.mainWindow.close();
+    }
+    process.exit(0);
+  }, 500);
 };
