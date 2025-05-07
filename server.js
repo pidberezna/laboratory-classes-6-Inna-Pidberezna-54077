@@ -1,23 +1,23 @@
-const express = require("express");
-const bodyParser = require("body-parser");
+const express = require('express');
+const bodyParser = require('body-parser');
+const path = require('path');
 
-const { PORT } = require("./config");
-const logger = require("./utils/logger");
-const productsRoutes = require("./routing/products");
-const logoutRoutes = require("./routing/logout");
-const killRoutes = require("./routing/kill");
-const homeRoutes = require("./routing/home");
-const { STATUS_CODE } = require("./constants/statusCode");
-const { MENU_LINKS } = require("./constants/navigation");
-const getFileFromAbsolutePath = require("./utils/getFileFromAbsolutePath");
-const cartController = require("./controllers/cartController");
+const { PORT } = require('./config');
+const logger = require('./utils/logger');
+const productsRoutes = require('./routing/products');
+const logoutRoutes = require('./routing/logout');
+const killRoutes = require('./routing/kill');
+const homeRoutes = require('./routing/home');
+const { STATUS_CODE } = require('./constants/statusCode');
+const { MENU_LINKS } = require('./constants/navigation');
+const cartController = require('./controllers/cartController');
 
 const app = express();
 
-app.set("view engine", "ejs");
-app.set("views", "views");
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
-app.use(express.static(getFileFromAbsolutePath("public")));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use((request, _response, next) => {
@@ -27,21 +27,27 @@ app.use((request, _response, next) => {
   next();
 });
 
-app.use("/products", productsRoutes);
-app.use("/logout", logoutRoutes);
-app.use("/kill", killRoutes);
+app.use('/products', productsRoutes);
+app.use('/logout', logoutRoutes);
+app.use('/kill', killRoutes);
 app.use(homeRoutes);
 app.use((request, response) => {
   const { url } = request;
   const cartCount = cartController.getProductsCount();
 
-  response.status(STATUS_CODE.NOT_FOUND).render("404", {
-    headTitle: "404",
+  response.status(STATUS_CODE.NOT_FOUND).render('404', {
+    headTitle: '404',
     menuLinks: MENU_LINKS,
-    activeLinkPath: "",
+    activeLinkPath: '',
     cartCount,
   });
   logger.getErrorLog(url);
 });
 
-app.listen(PORT);
+module.exports = app;
+
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}

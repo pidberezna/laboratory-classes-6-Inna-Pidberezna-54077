@@ -2,9 +2,11 @@
   "name": "laboratory-classes-6",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "main.js",
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "electron": "electron .",
+    "dev": "nodemon --watch main.js --exec electron ."
   },
   "author": "",
   "license": "ISC",
@@ -15,7 +17,7 @@
     "laboratory-classes-6": "file:"
   },
   "devDependencies": {
+    "electron": "^27.0.0",
     "nodemon": "^3.1.9"
   }
 }
-
